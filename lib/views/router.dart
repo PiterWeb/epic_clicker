@@ -1,7 +1,13 @@
+import '/views/store.dart';
 import 'package:flutter/material.dart';
-import 'package:epic_clicker/layout/main_layout.dart';
-import 'package:epic_clicker/views/counter.dart';
+import '/views/counter.dart';
 
-final routes = <String, WidgetBuilder>{
-  '/counter': (context) => const MainLayout(child: Counter()),
+final routes = <String, Widget>{
+  'Clicker': const Counter(),
+  'Store': const Store(),
+};
+
+final routesIcons = <String, IconData>{
+  'Clicker': Icons.home,
+  'Store': Icons.store,
 };

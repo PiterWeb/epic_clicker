@@ -1,9 +1,12 @@
 import 'dart:math';
+
+import 'package:epic_clicker/model/counter_model.dart';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
-
 import 'package:audioplayers/audioplayers.dart';
-import 'package:epic_clicker/effects/confetti.dart';
+import 'package:provider/provider.dart';
+
+import '/effects/confetti.dart';
 
 class Counter extends StatefulWidget {
   const Counter({super.key});
@@ -13,26 +16,21 @@ class Counter extends StatefulWidget {
 }
 
 class _CounterState extends State<Counter> {
-  final ValueNotifier<int> _counterValue = ValueNotifier<int>(0);
-
   late ConfettiController _confettiController;
 
-  static AudioPlayer player = AudioPlayer();
+  final AudioPlayer player = AudioPlayer();
   static const confettiAudioPath = "audios/confetti.mp3";
 
   @override
   void initState() {
     _confettiController =
-        ConfettiController(duration: const Duration(seconds: 1));
-
-    _counterValue.addListener(() async {
-      if (_counterValue.value % 50 == 0) {
-        _confettiController.play();
-        await player.play(AssetSource(confettiAudioPath));
-      }
-    });
+        ConfettiController(duration: const Duration(milliseconds: 500));
 
     super.initState();
+  }
+
+  Future<void> playSound() async {
+    await player.play(AssetSource(confettiAudioPath));
   }
 
   @override
@@ -45,40 +43,48 @@ class _CounterState extends State<Counter> {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        children: [
-          const SizedBox(height: 40),
-          Text(
-            "${_counterValue.value}",
-            style: const TextStyle(fontSize: 70),
-          ),
-          const SizedBox(height: 75),
-          ConfettiWidget(
-            confettiController: _confettiController,
-            createParticlePath: drawStar,
-            blastDirection: 3 * pi / 2,
-            emissionFrequency: 0.01,
-            child: const SizedBox(
-              height: 40,
+      child: Consumer<CounterModel>(builder: (context, counter, _) {
+        return Column(
+          children: [
+            const SizedBox(height: 40),
+            Text(
+              "${counter.counterValue}",
+              style: const TextStyle(fontSize: 70),
             ),
-          ),
-          const SizedBox(height: 75),
-          CircleAvatar(
-            radius: 80,
-            backgroundColor: Colors.amber,
-            child: IconButton(
-              iconSize: 40,
-              padding: const EdgeInsets.all(50),
-              onPressed: () {
-                setState(() => _counterValue.value++);
-              },
-              highlightColor: Colors.amberAccent,
-              icon: const Icon(Icons.add),
-              color: Colors.white,
+            const SizedBox(height: 75),
+            ConfettiWidget(
+              confettiController: _confettiController,
+              createParticlePath: drawStar,
+              blastDirection: 3 * pi / 2,
+              emissionFrequency: 0.02,
+              child: const SizedBox(
+                height: 40,
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(height: 75),
+            Ink(
+              decoration: const ShapeDecoration(
+                color: Colors.amber,
+                shape: CircleBorder(),
+              ),
+              child: IconButton(
+                iconSize: 40,
+                padding: const EdgeInsets.all(50),
+                onPressed: () {
+                  counter.increment();
+                  if (counter.counterValue % 50 == 0) {
+                    _confettiController.play();
+                    playSound();
+                  }
+                },
+                highlightColor: Colors.amberAccent,
+                icon: const Icon(Icons.add),
+                color: Colors.white,
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 }
